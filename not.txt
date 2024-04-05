@@ -1,8 +1,4 @@
-      basics-assignment-1-solution/
-       git add basics-components/
-       git add  basics-ngfor-addition/
-       git add  cmp-databinding-final/
-       git add  course-project-cmp-final/
+
 run in terminal
 ssh-keygen   
 more ~/.ssh/id_rsa.pub  
