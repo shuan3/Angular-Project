@@ -1,0 +1,19 @@
+npm install -g @angular/cli
+ng --version
+ng version
+npm install -g @angular-devkit/schematics-cli
+npm install -g @angular/cli
+npm install adal-angular
+npm i --legacy-peer-deps
+
+ ng g c text --project=test_project --module=app
+ng g s records --project=test_project
+
+check selector if they mention in html
+
+
+
+ng n c components/dashboard  --project=okta_sample_app --module=app
+
+C:\Users\shanh\Desktop\database\Angular\Test\okta-sample-app> ng g c components/dashboard --project=okta-sample-app --module=app
+ng g c components/details --project=okta-sample-app --module=app
