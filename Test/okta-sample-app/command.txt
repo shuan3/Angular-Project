@@ -1,0 +1,22 @@
+ng n c components/dashboard  --project=okta-sample-app
+
+ng n c components/dashboard  --project=okta_sample_app --module=app
+
+ng n c components/details  --project=okta_sample_app --module=app
+add routers
+in app.modules.ts
+-----------
+import{Routes,RouterModule} from '@angular/router'
+const appRoutes:Routes=[{path:'dashboard',component:DashboardComponent}]
+  imports: [
+
+    RouterModule.forRoot(appRoutes)]
+------------
+in app.component.html
+-----------
+<router-outlet></router-outlet>
+-----------
+
+
+https://github.com/snigdhesh/okta-authentication-angular/blob/master/angular.json
+npm install --save @okta/okta-angular
