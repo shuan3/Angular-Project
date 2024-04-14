@@ -4,7 +4,7 @@ ssh-keygen
 more ~/.ssh/id_rsa.pub  
 
 copy key and past in github ssh
-s
+
 
 git rm --cached 123456  
 
