@@ -2,7 +2,26 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import { catchError, Subject, tap, throwError } from 'rxjs';
 import { User } from './user.model';
+// require('dotenv').config()
+// import { fileURLToPath } from 'url';
+// import { dirname } from 'path';
 
+// __dirname = path.resolve(path.dirname(''));
+
+// const path=require('path')
+// const dotenv=require('dotenv');
+// const TESTENV=path.resolve(__dirname ,'testenv');
+// const fs=require('fs')
+// if (fs.existsSynv(TESTENV)){
+// const envConfig=dotenv.parse(fs.readFileSync(TESTENV));
+// Object.keys(envConfig).forEach(
+//   (k)=>{
+//     process.env[k]=envConfig[k]
+//   }
+// )
+// }
+// require('dotenv').config({path: __dirname + '/.env'})
+import {environment} from '../../environment/environment';
 
 export interface AuthResponseData{
     kind:string,
@@ -22,7 +41,10 @@ user=new Subject<User>();
 
     constructor(private http:HttpClient){}
 signup(email:string,password:string){
-return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA',
+return this.http.post<AuthResponseData>(environment.SIGNUP_URL
+  // process.env['SIGNUP_URL']
+  // 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA'
+  ,
 {email:email,
     password:password,
     returnSecureToken:true
@@ -41,7 +63,11 @@ tap(resData => {
 
 login(email:string,password:string)
 {
-return this.http.post<AuthResponseData>("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA",
+return this.http.post<AuthResponseData>(environment.LOGIN_URL
+  // process.env['LOGIN_URL']
+  // "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA"
+  
+  ,
 {email:email,
     password:password,
     returnSecureToken:true
