@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import { catchError, Subject, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Subject, tap, throwError} from 'rxjs';
 import { User } from './user.model';
 // require('dotenv').config()
 // import { fileURLToPath } from 'url';
@@ -37,7 +37,11 @@ registered?:boolean,
 
 @Injectable({providedIn:'root'})
 export class AuthService{
-user=new Subject<User>();
+user=new BehaviorSubject<User>(null);
+token:string =null;
+
+
+
 
     constructor(private http:HttpClient){}
 signup(email:string,password:string){
