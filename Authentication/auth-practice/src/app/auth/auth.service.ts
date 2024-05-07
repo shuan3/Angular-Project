@@ -43,7 +43,7 @@ user=new Subject<User>();
 signup(email:string,password:string){
 return this.http.post<AuthResponseData>(environment.SIGNUP_URL
   // process.env['SIGNUP_URL']
-  // 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA'
+
   ,
 {email:email,
     password:password,
@@ -65,7 +65,7 @@ login(email:string,password:string)
 {
 return this.http.post<AuthResponseData>(environment.LOGIN_URL
   // process.env['LOGIN_URL']
-  // "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDSNl7EqJmwaAJOANVSnL3HG7lJwBDIwEA"
+
   
   ,
 {email:email,
