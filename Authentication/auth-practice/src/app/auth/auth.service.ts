@@ -1,99 +1,121 @@
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import { BehaviorSubject, catchError, Subject, tap, throwError} from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, tap } from 'rxjs/operators';
+import { throwError, BehaviorSubject } from 'rxjs';
+
 import { User } from './user.model';
-// require('dotenv').config()
-// import { fileURLToPath } from 'url';
-// import { dirname } from 'path';
+import { environment } from '../../environment/environment';
 
-// __dirname = path.resolve(path.dirname(''));
-
-// const path=require('path')
-// const dotenv=require('dotenv');
-// const TESTENV=path.resolve(__dirname ,'testenv');
-// const fs=require('fs')
-// if (fs.existsSynv(TESTENV)){
-// const envConfig=dotenv.parse(fs.readFileSync(TESTENV));
-// Object.keys(envConfig).forEach(
-//   (k)=>{
-//     process.env[k]=envConfig[k]
-//   }
-// )
-// }
-// require('dotenv').config({path: __dirname + '/.env'})
-import {environment} from '../../environment/environment';
-
-export interface AuthResponseData{
-    kind:string,
-    idtoken:string,
-    email:string,
-    refreshToken:string,
-    expiresIn:string,
-    localld:string
-//optional value
-registered?:boolean,
+export interface AuthResponseData {
+  kind: string;
+  idToken: string;
+  email: string;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
+  registered?: boolean;
 }
 
-
-@Injectable({providedIn:'root'})
-export class AuthService{
-user=new BehaviorSubject<User>(null);
-token:string =null;
-
-
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  user = new BehaviorSubject<User>(null);
+  private tokenExpirationTimer: any;
+  // var localStorage: Storage;
 
 
-    constructor(private http:HttpClient){}
-signup(email:string,password:string){
-return this.http.post<AuthResponseData>(environment.SIGNUP_URL
-  // process.env['SIGNUP_URL']
+  constructor(private http: HttpClient, private router: Router) {}
 
-  ,
-{email:email,
-    password:password,
-    returnSecureToken:true
-}
-).pipe(  catchError(this.handleError),
-tap(resData => {
-  this.handleAuthentication(
-    resData.email,
-    resData.localld,
-    resData.idtoken,
-    +resData.expiresIn
-  );
-})
-);
-}
+  signup(email: string, password: string) {
+    return this.http
+      .post<AuthResponseData>(
+        environment.SIGNUP_URL,
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true
+        }
+      )
+      .pipe(
+        catchError(this.handleError),
+        tap(resData => {
+          this.handleAuthentication(
+            resData.email,
+            resData.localId,
+            resData.idToken,
+            +resData.expiresIn
+          );
+        })
+      );
+  }
 
-login(email:string,password:string)
-{
-return this.http.post<AuthResponseData>(environment.LOGIN_URL
-  // process.env['LOGIN_URL']
+  login(email: string, password: string) {
+    return this.http
+      .post<AuthResponseData>(
+        environment.LOGIN_URL,
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true
+        }
+      )
+      .pipe(
+        catchError(this.handleError),
+        tap(resData => {
+          this.handleAuthentication(
+            resData.email,
+            resData.localId,
+            resData.idToken,
+            +resData.expiresIn
+          );
+        })
+      );
+  }
 
-  
-  ,
-{email:email,
-    password:password,
-    returnSecureToken:true
-}
+  autoLogin() {
+    const userData: {
+      email: string;
+      id: string;
+      _token: string;
+      _tokenExpirationDate: string;
+    } = JSON.parse(localStorage.getItem('userData'));
+    if (!userData) {
+      return;
+    }
 
-).pipe(  catchError(this.handleError),
-tap(resData => {
-  this.handleAuthentication(
-    resData.email,
-    resData.localld,
-    resData.idtoken,
-    +resData.expiresIn
-  );
-})
-);
-}
+    const loadedUser = new User(
+      userData.email,
+      userData.id,
+      userData._token,
+      new Date(userData._tokenExpirationDate)
+    );
 
+    if (loadedUser.token) {
+      this.user.next(loadedUser);
+      const expirationDuration =
+        new Date(userData._tokenExpirationDate).getTime() -
+        new Date().getTime();
+      this.autoLogout(expirationDuration);
+    }
+  }
 
+  logout() {
+    this.user.next(null);
+    this.router.navigate(['/auth']);
+    localStorage.removeItem('userData');
+    if (this.tokenExpirationTimer) {
+      clearTimeout(this.tokenExpirationTimer);
+    }
+    this.tokenExpirationTimer = null;
+  }
 
+  autoLogout(expirationDuration: number) {
+    this.tokenExpirationTimer = setTimeout(() => {
+      this.logout();
+    }, expirationDuration);
+  }
 
-
-private handleAuthentication(
+  private handleAuthentication(
     email: string,
     userId: string,
     token: string,
@@ -102,27 +124,37 @@ private handleAuthentication(
     const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
     const user = new User(email, userId, token, expirationDate);
     this.user.next(user);
+    this.autoLogout(expiresIn * 1000);
+    localStorage.setItem('userData', JSON.stringify(user));
   }
 
-
-private handleError(errorRes:HttpErrorResponse){
-
-    let errorMessage="An unknown error occured!"
-    if (!errorRes.error || !errorRes.error.error){
-        return throwError(errorRes);
+  private handleError(errorRes: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    if (!errorRes.error || !errorRes.error.error) {
+      return throwError(errorMessage);
     }
-    else{
-    switch(errorRes.error.error.message){
-    case 'EMAIL_EXISTS':errorMessage='EMAIL EXIST';
-    break;
-    case 'EMAIL_NOT_FOUND':errorMessage='This email is not exist.';
-    break;     
-    case 'INVALID_PASSWORD':errorMessage='This password is not correct.';
-    break;    
-  }  return throwError(errorMessage)}
+    switch (errorRes.error.error.message) {
+      case 'EMAIL_EXISTS':
+        errorMessage = 'This email exists already';
+        break;
+      case 'EMAIL_NOT_FOUND':
+        errorMessage = 'This email does not exist.';
+        break;
+      case 'INVALID_PASSWORD':
+        errorMessage = 'This password is not correct.';
+        break;
+    }
+    return throwError(errorMessage);
+  }
 }
 
-}
+
+
+
+
+
+
+
 
 
 // Ref Doc: https://firebase.google.com/docs/reference/rest/auth
